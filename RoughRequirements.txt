@@ -1,0 +1,162 @@
+
+
+role--> 1.admin
+		2.user1
+		3.user2
+		4.driver
+
+owners--> name
+		  age
+		  phoneNumber
+		  address
+		  city
+		  state
+		  pincode
+		  aadharno
+		  
+drivers--> name
+		   age
+		   phonenumber
+		   address
+		   city
+		   state
+		   pincode
+		   aadharno
+		   licenseno
+
+vehicles-->name
+		   vehiclenumber
+           loadcapacity
+		   
+recordentry -->lrno
+			   date
+			   challanno
+			   weight
+			   vehiclenumber
+			   sourcecompany
+			   destcompany
+			   freight
+			   advance
+			   balance
+			   drivername
+			   
+company --> companyname
+			address
+			   
+-- Create Roles table
+CREATE TABLE Roles (
+    role_id INT AUTO_INCREMENT PRIMARY KEY,
+    role_name VARCHAR(50) UNIQUE NOT NULL
+);
+
+-- Create Owners table
+CREATE TABLE Owners (
+    owner_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    age INT,
+    phone_number VARCHAR(20) UNIQUE NOT NULL,
+    address VARCHAR(255),
+    city VARCHAR(100),
+    state VARCHAR(100),
+    pincode VARCHAR(10),
+    aadhar_no VARCHAR(20) UNIQUE NOT NULL
+);
+
+-- Create Drivers table
+CREATE TABLE Drivers (
+    driver_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    age INT,
+    phone_number VARCHAR(20) UNIQUE NOT NULL,
+    address VARCHAR(255),
+    city VARCHAR(100),
+    state VARCHAR(100),
+    pincode VARCHAR(10),
+    aadhar_no VARCHAR(20) UNIQUE NOT NULL,
+    license_no VARCHAR(50) UNIQUE NOT NULL,
+    registration_status VARCHAR(20) DEFAULT 'PENDING' -- Added status column
+);
+
+-- Create Vehicles table
+CREATE TABLE Vehicles (
+    vehicle_id INT AUTO_INCREMENT PRIMARY KEY,
+    vehicle_number VARCHAR(20) UNIQUE NOT NULL,
+    name VARCHAR(255),  -- Vehicle model or make
+    load_capacity DECIMAL(10, 2),
+    registration_status VARCHAR(20) DEFAULT 'PENDING' -- Added status column
+);
+
+-- Create Companies table
+CREATE TABLE Companies (
+    company_id INT AUTO_INCREMENT PRIMARY KEY,
+    company_name VARCHAR(255) UNIQUE NOT NULL,
+    address VARCHAR(255)
+);
+
+
+-- Create Users table
+CREATE TABLE Users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    role_id INT NOT NULL,
+    username VARCHAR(255) UNIQUE,  -- For login, if needed
+    password VARCHAR(255),          -- Store securely (hashed)
+    owner_id INT,
+    driver_id INT,
+    account_status VARCHAR(20) DEFAULT 'PENDING', -- Added status column
+    FOREIGN KEY (role_id) REFERENCES Roles(role_id),
+    FOREIGN KEY (owner_id) REFERENCES Owners(owner_id),
+    FOREIGN KEY (driver_id) REFERENCES Drivers(driver_id)
+);
+
+
+-- Create RecordEntries table
+CREATE TABLE RecordEntries (
+    record_entry_id INT AUTO_INCREMENT PRIMARY KEY,
+    lr_no VARCHAR(50) UNIQUE NOT NULL,
+    date DATE,
+    challan_no VARCHAR(50),
+    weight DECIMAL(10, 2),
+    vehicle_id INT NOT NULL,
+    source_company_id INT,  -- Foreign key to Companies table
+    dest_company_id INT,    -- Foreign key to Companies table
+    freight DECIMAL(10, 2),
+    advance DECIMAL(10, 2),
+    balance DECIMAL(10, 2),
+    driver_id INT NOT NULL,
+    FOREIGN KEY (vehicle_id) REFERENCES Vehicles(vehicle_id),
+    FOREIGN KEY (driver_id) REFERENCES Drivers(driver_id),
+    FOREIGN KEY (source_company_id) REFERENCES Companies(company_id),
+    FOREIGN KEY (dest_company_id) REFERENCES Companies(company_id)
+);
+
+
+-- Sample Data (Optional - you can insert data later)
+INSERT INTO Roles (role_name) VALUES ('admin'), ('user1'), ('user2'), ('driver');
+
+-- Add indexes for faster queries (highly recommended)
+CREATE INDEX idx_phone_number_owners ON Owners (phone_number);
+CREATE INDEX idx_aadhar_no_owners ON Owners (aadhar_no);
+CREATE INDEX idx_phone_number_drivers ON Drivers (phone_number);
+CREATE INDEX idx_aadhar_no_drivers ON Drivers (aadhar_no);
+CREATE INDEX idx_license_no_drivers ON Drivers (license_no);
+CREATE INDEX idx_vehicle_number ON Vehicles (vehicle_number);
+CREATE INDEX idx_lr_no ON RecordEntries (lr_no);
+CREATE INDEX idx_date_recordentries ON RecordEntries (date);  -- For date-based searches
+CREATE INDEX idx_company_name ON Companies (company_name); -- Index for company name
+
+
+-- Example of how to update the status (for admin approval)
+--  (Run these queries after the tables are created and you have data)
+-- For Driver
+UPDATE Drivers SET registration_status = 'APPROVED' WHERE driver_id = 1;  -- Replace 1 with the actual driver_id
+
+-- For Vehicle
+UPDATE Vehicles SET registration_status = 'APPROVED' WHERE vehicle_id = 1; -- Replace 1 with the actual vehicle_id
+
+-- For User
+UPDATE Users SET account_status = 'APPROVED' WHERE user_id = 1; -- Replace 1 with the actual user_id (you would likely link this to the Driver)
+
+-- Insert some companies (example)
+INSERT INTO Companies (company_name, address) VALUES
+('Company A', 'Address A'),
+('Company B', 'Address B');
